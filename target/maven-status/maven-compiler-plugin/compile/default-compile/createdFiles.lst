@@ -1,0 +1,14 @@
+com\mismarcasderuning\model\Mark.class
+com\mismarcasderuning\resources\JavaEE8Resource.class
+com\mismarcasderuning\dao\Manager.class
+com\mismarcasderuning\dao\RunDAO.class
+com\mismarcasderuning\model\User.class
+com\mismarcasderuning\dao\RunSQL.class
+com\mismarcasderuning\model\Management.class
+com\mismarcasderuning\dao\UserDAO.class
+com\mismarcasderuning\model\Run.class
+com\utils\Utils.class
+com\mismarcasderuning\dao\MarkDAO.class
+com\mismarcasderuning\dao\UserSQL.class
+com\mismarcasderuning\JAXRSConfiguration.class
+com\mismarcasderuning\dao\MarkSQL.class
