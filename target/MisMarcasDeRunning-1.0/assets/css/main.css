@@ -110,7 +110,7 @@
 
 	body, input, select, textarea {
 		color: #777;
-		font-family: "Source Sans Pro", sans-serif;
+		font-family: "Font Awesome 5 Free", "Source Sans Pro", sans-serif;
 		font-size: 16pt;
 		font-weight: 300;
 		line-height: 1.65em;
@@ -143,6 +143,10 @@
 	p {
 		margin: 0 0 2em 0;
 	}
+        
+        p.red {
+            color:red;
+        }
 
 	h1, h2, h3, h4, h5, h6 {
 		color: #646464;
@@ -2079,6 +2083,9 @@
 	input[type="text"],
 	input[type="password"],
 	input[type="email"],
+	input[type="query"],
+        input[type="tel"],
+        input[type="date"],
 	select,
 	textarea {
 		-moz-appearance: none;
@@ -2096,9 +2103,20 @@
 		width: 100%;
 	}
 
+	input[type="query"] {
+		color: #646464;
+	}
+        
+        #advanced_search input[type="submit"] {
+            font-family: FontAwesome;
+        }
+
 		input[type="text"]:invalid,
 		input[type="password"]:invalid,
 		input[type="email"]:invalid,
+		input[type="query"]:invalid,
+                input[type="tel"]:invalid,
+                input[type="date"]:invalid,
 		select:invalid,
 		textarea:invalid {
 			box-shadow: none;
@@ -2107,6 +2125,9 @@
 		input[type="text"]:focus,
 		input[type="password"]:focus,
 		input[type="email"]:focus,
+		input[type="query"]:focus,
+                input[type="tel"]:focus,
+                input[type="date"]:focus,
 		select:focus,
 		textarea:focus {
 			border-color: #e89980;
@@ -2139,6 +2160,9 @@
 	input[type="text"],
 	input[type="password"],
 	input[type="email"],
+	input[type="query"],
+        input[type="tel"],
+        input[type="date"],
 	select {
 		height: 3em;
 	}
@@ -3331,6 +3355,7 @@
 		#cta input[type="text"],
 		#cta input[type="password"],
 		#cta input[type="email"],
+		#cta input[type="query"],
 		#cta select,
 		#cta textarea {
 			color: #ffffff;
@@ -3341,9 +3366,14 @@
 			#cta input[type="text"]:focus,
 			#cta input[type="password"]:focus,
 			#cta input[type="email"]:focus,
+			#cta input[type="query"]:focus,
 			#cta select:focus,
 			#cta textarea:focus {
 				box-shadow: inset 0 0 0 2px #fff;
+			}
+
+			#cta input[type="query"] {
+				color: #646464;
 			}
 
 		#cta ::-webkit-input-placeholder {
@@ -3896,8 +3926,5 @@
 			}
 
 	}
-
-        /* Others */
-        .white {
-            background-color: white;
-        }
+        
+         

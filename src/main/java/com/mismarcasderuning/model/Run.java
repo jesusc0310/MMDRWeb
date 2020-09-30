@@ -16,25 +16,28 @@ public class Run {
     private String place;
     private String web;
     private float distance;
+    private String route;
     private String photo;
     
     private static int nRuns = 0;
 
-    public Run(String name, String place, String web, float distance, String photo) {
+    public Run(String name, String place, String web, float distance,String route, String photo) {
         id = nRuns++;
         this.name = name;
         this.place = place;
         this.web = web;
         this.distance = distance;
+        this.route = route;
         this.photo = photo;
     }
 
-    public Run(int id, String name, String place, String web, float distance, String photo) {
+    public Run(int id, String name, String place, String web, float distance, String route, String photo) {
         this.id = id;
         this.name = name;
         this.place = place;
         this.web = web;
         this.distance = distance;
+        this.route = route;
         this.photo = photo;
     }
     
@@ -58,6 +61,10 @@ public class Run {
         return distance;
     }
     
+    public String getRoute() {
+        return route;
+    }
+    
     public String getPhoto(){
         return photo;
     }
@@ -77,6 +84,10 @@ public class Run {
     public void setDistance(float distance) {
         this.distance = distance;
     }
+    
+    public void setRoute(String route) {
+        this.route = route;
+    } 
     
     public void setPhoto(String photo) {
         this.photo = photo;

@@ -9,33 +9,45 @@ package com.mismarcasderuning.notifications;
  *
  * @author Jesus Cruz
  */
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Properties;
 
 public class Telegram {
-    private int id;
+    private String id;
     private String botUrl;
 
     // Constructor;
 
-    public Telegram(int id, String botUrl) {
-        this.id = id;
-        this.botUrl = botUrl;
+    public Telegram() {
+        
+        Properties prop = new Properties();
+        
+        try {
+            prop.load(new FileReader("C:\\Users\\jesus\\Desktop\\DAM\\1DAM\\Programacion\\MisMarcasDeRunning\\src\\main\\webapp\\config\\infoTelegram.properties"));
+        } catch (IOException e){
+        }
+        
+        this.id = prop.getProperty("ID");
+        this.botUrl = prop.getProperty("BOTURL");
     }
 
 
     // Getter;
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
     //Setter;
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -52,16 +64,14 @@ public class Telegram {
         String address = botUrl + id + "&text=" + message;
 
         URL url;
-        boolean input = false;
 
         try {
             url = new URL(address);
-            URLConnection connection = url.openConnection();
-            BufferedReader in = new BufferedReader((new InputStreamReader(connection.getInputStream())));
-            input = true;
+            URLConnection conn = url.openConnection();
+            InputStream in = new BufferedInputStream(conn.getInputStream());
         } catch (IOException e) {
-            input = false;
+            return false;
         }
-        return input;
+        return true;
     }
 }

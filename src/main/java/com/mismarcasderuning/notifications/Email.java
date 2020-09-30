@@ -9,6 +9,8 @@ package com.mismarcasderuning.notifications;
  *
  * @author Jesus Cruz
  */
+import java.io.FileReader;
+import java.io.IOException;
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
@@ -24,25 +26,18 @@ public class Email {
 
     //Constructor
 
-    public Email(String host, String username, String password) {
-        this.host = host;
-        this.username = username;
-        this.password = password;
-    }
-
-
-    // Getter
-
-    public String getHost() {
-        return host;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
+    public Email() {
+        
+        Properties prop = new Properties();
+        
+        try {
+            prop.load(new FileReader("C:\\Users\\jesus\\Desktop\\DAM\\1DAM\\Programacion\\MisMarcasDeRunning\\src\\main\\webapp\\config\\infoEmail.properties"));
+        } catch (IOException e) {
+        }
+        
+        this.host = prop.getProperty("HOST");
+        this.username = prop.getProperty("USERNAME");
+        this.password = prop.getProperty("PASSWORD");
     }
 
     // Setter

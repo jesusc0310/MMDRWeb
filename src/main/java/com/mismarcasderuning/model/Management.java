@@ -5,29 +5,29 @@
  */
 package com.mismarcasderuning.model;
 
-import com.mismarcasderuning.dao.Manager;
-import com.mismarcasderuning.dao.MarkSQL;
-import com.mismarcasderuning.dao.RunSQL;
-import com.mismarcasderuning.dao.UserSQL;
+import com.mismarcasderuning.dao.*;
+import com.mismarcasderuning.notifications.*;
+import com.mismarcasderuning.utils.Utils;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  *
  * @author Jesus Cruz
  */
+//TODO: Cambiar los comentarios de JavaDoc.
 public class Management {
 
-    private final Manager manager;
-    private final ArrayList<Mark> marks;
-    private final ArrayList<User> users;
-    private final ArrayList<Run> runs;
+    private Manager manager;
+    private RunSQL rSQL;
+    private UserSQL uSQL;
+    private MarkSQL mSQL;
 
-    private User currentUser;
-
-    private final int loggedUsers;
-    private final int nUsers;
-    private static final int NONE = -1;
+    private Email EMAIL;
+    // private Telegram TELEGRAM;
+    // Telegram no funciona con la version de java 8
 
     // CONSTRUCTOR
     /**
@@ -43,29 +43,14 @@ public class Management {
     public Management() throws ClassNotFoundException, SQLException {
 
         manager = Manager.getInstance();
-        
-        UserSQL userSQL = new UserSQL();
-        RunSQL runSQL = new RunSQL();
-        MarkSQL markSQL = new MarkSQL();
+
+        rSQL = new RunSQL();
+        uSQL = new UserSQL();
+        mSQL = new MarkSQL();
+
+        EMAIL = new Email();
 
         manager.open();
-
-        users = userSQL.readAll(manager);
-        runs = runSQL.readAll(manager);
-        marks = markSQL.readAll(manager);
-
-        nUsers = userSQL.getNumberOfUsers(manager);
-        loggedUsers = userSQL.getLoggedUsers(manager);
-
-        User.setNUsers(users.size());
-        Run.setNRuns(runs.size());
-        Mark.setNMarks(marks.size());
-
-        currentUser = null;
-
-        manager.close();
-
-        manager.resetInstance();
     }
 
     // GETTERS
@@ -74,9 +59,9 @@ public class Management {
      *
      * @return Devuelve una lista de usuarios.
      */
-    public ArrayList<User> getUsers() {
+    public ArrayList<User> getUsers() throws SQLException {
 
-        return users;
+        return uSQL.readAll(manager);
     }
 
     /**
@@ -84,9 +69,9 @@ public class Management {
      *
      * @return Devuelve una lista de carreras.
      */
-    public ArrayList<Run> getRuns() {
+    public ArrayList<Run> getRuns() throws SQLException {
 
-        return runs;
+        return rSQL.readAll(manager);
     }
 
     /**
@@ -94,9 +79,9 @@ public class Management {
      *
      * @return Devuelve una lista de marcas.
      */
-    public ArrayList<Mark> getMarks() {
+    public ArrayList<Mark> getMarks() throws SQLException {
 
-        return marks;
+        return mSQL.readAll(manager);
     }
 
     /**
@@ -107,23 +92,20 @@ public class Management {
      * @return Devuelve el usuario si el id no es mayor que el tamaño del array
      * de usuarios, de otro modo devuelve null.
      */
-    public User getUser(int id) {
+    public User getUser(int id) throws SQLException {
 
-        if (id <= users.size()) {
-            return users.get(id);
-        } else {
-            return null;
-        }
+        return uSQL.read(id, manager);
     }
 
     /**
-     * Getter del usuario que actualmente tiene la sesión iniciada.
      *
-     * @return devuelve el usuario que tiene la sesión iniciada, si no hay
-     * ninguno devuelve un usuario con valor null.
+     * @param username
+     * @return
+     * @throws SQLException
      */
-    public User getCurrentUser() {
-        return currentUser;
+    public User getUser(String username) throws SQLException {
+
+        return uSQL.read(username, manager);
     }
 
     /**
@@ -134,13 +116,9 @@ public class Management {
      * @return Devuelve la carrera si el id no es mayor que el tamaño del array
      * de carreras, de otro modo devuelve null.
      */
-    public Run getRun(int id) {
+    public Run getRun(int id) throws SQLException {
 
-        if (id <= runs.size()) {
-            return runs.get(id);
-        } else {
-            return null;
-        }
+        return rSQL.read(id, manager);
     }
 
     /**
@@ -151,13 +129,9 @@ public class Management {
      * @return Devuelve la marca si el id no es mayor que el tamaño del array de
      * marcas, de otro modo devuelve null.
      */
-    public Mark getMark(int id) {
+    public Mark getMark(int id) throws SQLException {
 
-        if (id <= marks.size()) {
-            return marks.get(id);
-        } else {
-            return null;
-        }
+        return mSQL.read(id, manager);
     }
 
     /**
@@ -167,7 +141,9 @@ public class Management {
      * @param runId
      * @return
      */
-    public Mark getMark(int userId, int runId) {
+    public Mark getMark(int userId, int runId) throws SQLException {
+
+        ArrayList<Mark> marks = getMarks();
 
         for (Mark mark : marks) {
             if (mark.getRunId() == runId && mark.getUserId() == userId) {
@@ -177,62 +153,64 @@ public class Management {
 
         return null;
     }
-    
+
     /**
      * Getter de todas las marcas que son publicas.
-     * 
+     *
      * @return Devuelve una lista con todas las marcas publicas.
+     *
+     * @throws SQLException
      */
-    public ArrayList<Mark> getPublicMarks() {
-        
+    public ArrayList<Mark> getPublicMarks() throws SQLException {
+
         ArrayList<Mark> publicMarks = new ArrayList<>();
-        
+
+        ArrayList<Mark> marks = getMarks();
+
         for (Mark mark : marks) {
             if (mark.isOpen()) {
                 publicMarks.add(mark);
             }
         }
-        
+
         return publicMarks;
     }
-    
+
     /**
      * Geeter de todas las marcas publicas de un usuario concreto
-     * 
+     *
      * @param userId Id del usuario del cual queremos obtener las marcas.
-     * 
+     *
      * @return Devuelve una lista con todas las marcas publicas de un usuario.
+     *
+     * @throws SQLException
      */
-    public ArrayList<Mark> getUserPublicMarks(int userId) {
-        
+    public ArrayList<Mark> getUserPublicMarks(int userId) throws SQLException {
+
         ArrayList<Mark> userPublicMarks = new ArrayList<>();
-        
+
+        ArrayList<Mark> marks = getMarks();
+
         for (Mark mark : marks) {
             if (mark.isOpen() && mark.getUserId() == userId) {
                 userPublicMarks.add(mark);
             }
         }
-        
+
         return userPublicMarks;
     }
-    /**
-     * Método que Devuelve el número de usuarios que están logueados.
-     *
-     * @return Devuelve el número de usuarios logueados.
-     */
-    public int getLoggedUsers() {
 
-        return loggedUsers;
+    // METODOS PARA OBTENER EL NÚMERO DE TUPLAS DE LAS TABLAS.
+    public int getNUsers() throws SQLException {
+        return getUsers().size();
     }
 
-    /**
-     * Método que Devuelve el número de usuarios que están registrados.
-     *
-     * @return Devuelve el número de usuarios registrados.
-     */
-    public int getNumberOfUsers() {
+    public int getNRuns() throws SQLException {
+        return getRuns().size();
+    }
 
-        return nUsers;
+    public int getNMarks() throws SQLException {
+        return getMarks().size();
     }
 
     // OTROS METODOS
@@ -247,15 +225,17 @@ public class Management {
      * @throws SQLException Lanza la excepción si encuentra algún error
      * sintáctico en el comando SQL.
      */
-    public int getUserByEmail(String email) throws SQLException {
+    public User getUserByEmail(String email) throws SQLException {
+
+        ArrayList<User> users = getUsers();
 
         for (User user : users) {
             if (user.getEmail().equals(email)) {
-                return user.getId();
+                return user;
             }
         }
 
-        return NONE;
+        return null;
     }
 
     /**
@@ -268,25 +248,10 @@ public class Management {
      *
      * @throws java.sql.SQLException Lanza dicha excepción en caso de que no se
      * pueda crear o cerrar la conexion con la base de datos.
-     * @throws java.lang.ClassNotFoundException Lanza dicha excepción en caso de
-     * que no encuentre la clase com.mysql.cj.jdbc.Driver.
      */
-    public boolean addUser(User user) throws SQLException, ClassNotFoundException {
+    public boolean addUser(User user) throws SQLException {
 
-        manager.open();
-        UserSQL userSQL = new UserSQL();
-
-        if (getUser(user.getId()) == null) {
-            if (userSQL.insert(user, manager)) {
-                manager.close();
-                return true;
-            } else {
-                manager.close();
-                return false;
-            }
-        } else {
-            return false;
-        }
+        return uSQL.insert(user, manager);
     }
 
     /**
@@ -299,25 +264,14 @@ public class Management {
      *
      * @throws java.sql.SQLException Lanza dicha excepción en caso de que no se
      * pueda crear o cerrar la conexion con la base de datos.
-     * @throws java.lang.ClassNotFoundException Lanza dicha excepción en caso de
-     * que no encuentre la clase com.mysql.cj.jdbc.Driver.
      */
-    public boolean addRun(Run run) throws SQLException, ClassNotFoundException {
-
-        manager.open();
-        RunSQL runSQL = new RunSQL();
+    public boolean addRun(Run run) throws SQLException {
 
         if (getRun(run.getId()) != null) {
             return false;
         } else {
 
-            if (runSQL.insert(run, manager)) {
-                manager.close();
-                return true;
-            } else {
-                manager.close();
-                return false;
-            }
+            return rSQL.insert(run, manager);
         }
 
     }
@@ -334,13 +288,10 @@ public class Management {
      *
      * @throws java.sql.SQLException Lanza dicha excepción en caso de que no se
      * pueda crear o cerrar la conexion con la base de datos.
-     * @throws java.lang.ClassNotFoundException Lanza dicha excepción en caso de
-     * que no encuentre la clase com.mysql.cj.jdbc.Driver.
      */
-    public boolean addMark(Mark mark) throws SQLException, ClassNotFoundException {
+    public boolean addMark(Mark mark) throws SQLException {
 
-        manager.open();
-        MarkSQL markSQL = new MarkSQL();
+        ArrayList<Mark> marks = getMarks();
 
         for (Mark m : marks) {
             if (m.getUserId() == mark.getUserId()
@@ -350,13 +301,84 @@ public class Management {
             }
         }
 
-        if (markSQL.insert(mark, manager)) {
-            manager.close();
-            return true;
-        } else {
-            manager.close();
-            return false;
-        }
+        return mSQL.insert(mark, manager);
     }
 
+    public void deleteUser(User user) {
+        
+        uSQL.delete(user, manager);
+    }
+    
+    /**
+     *
+     * @param username
+     * @param password A string
+     * @return A String with the error that doesn't let you log in.
+     * @throws SQLException
+     */
+    public String login(String username, String password) throws SQLException {
+
+        User user = getUser(username);
+        String error;
+
+        if (user == null) {
+            return "El nombre de usuario no correspone a nadie.";
+        } else {
+            if (!user.getPassword().equals(password)) {
+                return "La contraseña no es correcta";
+            } else {
+                error = "";
+            }
+        }
+
+        return error;
+    }
+
+    public User regist(String username, String password, String email, String name, String surnames, Calendar birthDate) throws SQLException, IOException {
+
+        User user = getUser(username);
+
+        if (user != null) {
+            return null;
+        } else {
+            user = getUserByEmail(email);
+
+            if (user != null) {
+                return null;
+            } else {
+                user = new User(getNUsers(), username, password, email, name, surnames, birthDate);
+
+                String html = Utils.readFile("C:\\Users\\jesus\\Desktop\\DAM\\1DAM\\Programacion\\MisMarcasDeRunning\\src\\main\\webapp\\welcome.html");
+                html = html.replaceAll("=name", user.getFullName());
+                html = html.replaceAll("=email", user.getEmail());
+                html = html.replaceAll("=token", Integer.toString(user.getToken()));
+
+                System.out.println(html);
+
+                if (addUser(user)) {
+                    if (EMAIL.send(email, "WELCOME", html)) {
+                        /*
+                        try {
+                            TELEGRAM.send("Se ha registrado el correo: "
+                                    + user.getEmail() + " con el usuario: "
+                                    + user.getUsername());
+                        } catch (Error e) {
+                            e.printStackTrace();
+                        }
+                         */
+                        return user;
+                    } else {
+                        deleteUser(user);
+                        return null;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void close() throws SQLException {
+        manager.close();
+    }
 }

@@ -1,8 +1,12 @@
 
 import com.mismarcasderuning.model.Management;
-import com.mismarcasderuning.model.Run;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -14,23 +18,14 @@ import java.util.ArrayList;
  *
  * @author Jesus Cruz
  */
-public class main {
-    
+public class Main {
     public static void main(String[] args) {
-        
         try {
             Management m = new Management();
+            System.out.println(m.getRun(0).getName());
             
-            ArrayList<Run> runs = m.getRuns();
-            
-            for (Run r : runs) {
-                System.out.println("<h1>" + r.getId() + "</h1>");
-            }
-            
-            m.close();
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
-    
 }

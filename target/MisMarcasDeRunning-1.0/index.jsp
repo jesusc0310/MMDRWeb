@@ -4,7 +4,12 @@
     Author     : Jesus Cruz
 --%>
 
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 
+<%@page import="java.io.IOException"%>
+<%@page import="java.io.FileInputStream"%>
+<%@page import="java.util.Properties"%>
+<%@page import="java.sql.SQLException"%>
 <%@page import="com.mismarcasderuning.model.User"%>
 <%@page import="com.mismarcasderuning.model.Run"%>
 <%@page import="java.util.ArrayList"%>
@@ -16,22 +21,31 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <link rel="stylesheet" href="assets/css/main.css">
-        <link rel="stylesheet" href="assets/css/style.css">
-        <%
-            Management m = new Management();
-            User user = m.getCurrentUser();
-            user = m.getUsers().get(0);
-        %>
     </head>
     <body class="landing is-preload">
-        <div id="page-wrapper">
+        <%
 
+            try {
+                Management m = new Management();
+
+                User user = new User();
+
+                if (session.isNew()) {
+                    session.setAttribute("currentUser", user);
+                } else {
+                    user = (User) session.getAttribute("currentUser");
+                }
+
+                if (user.getId() != -1 && !user.isVerified()) {
+                    response.sendRedirect("verificationPage.jsp");
+                }
+        %>
+
+        <div id="page-wrapper">
             <!-- Header -->
             <header id="header" class="alt">
-                <h1>MIS MARCAS DE RUNNING | &nbsp;
-                    <%
-                        out.print(m.getNumberOfUsers() + " usuarios registrados.");
-                    %>
+                <h1><a href="#" >MIS MARCAS DE RUNNING</a> | &nbsp;
+                    <%=m.getNUsers() + " usuarios."%>
                 </h1>
                 <nav id="nav">
                     <ul>
@@ -46,6 +60,7 @@
                                             ArrayList<Run> runs = m.getRuns();
 
                                             for (int i = 0; i < 5; i++) {
+
                                                 out.println("<li><a href=\"#\">" + runs.get(i).getName() + "</a></li>");
                                             }
 
@@ -54,27 +69,28 @@
                                 </li>
                                 <li><a href="generic.html">Ver marcas publicas</a></li>
                                     <%                                        
-                                        if (user != null) {
+                                        if (user.getId() != -1) {
                                             out.print("<li><a href=\"getMarks.jsp\">Ver mis marcas</a></li>");
-                                            out.print("<li><a href=\"addMark.jsp\">Insertar una marca</a></li>");
+                                            out.print("<li><a href=\".jsp\">Insertar una marca</a></li>");
+
                                             if (user.getId() == 0) {
-                                                out.print("<li><a href=\"addRun.jsp\">A馻dir una carrera</a></li>");
+                                                out.print("<li><a href=\"addRun.jsp\">A帽adir una carrera</a></li>");
                                             }
                                         }
                                     %>
                             </ul>
                         </li>
                         <%
-                            if (user == null) {
+                            if (user.getId() == -1) {
                                 out.print("<li><a href=\"signUpPage.jsp\" class=\"button primary\">Resgistrarse</a></li>"
-                                        + "<li><a href=\"logInPage.jsp\" class=\"button\">Iniciar sesi髇</a></li>");
+                                        + "<li><a href=\"logInPage.jsp\" class=\"button\">Iniciar sesi贸n</a></li>");
                             } else {
                                 out.print("<li><a href=\"profile.jsp\">"
                                         + user.getUsername() + "</a>"
                                         + "<ul>"
                                         + "<li><a href=\"profile.jsp\">Mi perfil</a></li>"
                                         + "<li><a href=\"modifyData.jsp\">Cambiar mis datos</a></li>"
-                                        + "<li><a href=\"logOut.jsp\">Cerrar Sesi髇</a></li>"
+                                        + "<li><a href=\"logOut.jsp\">Cerrar Sesi贸n</a></li>"
                                         + "</ul>"
                                         + "</li>");
                             }
@@ -87,30 +103,39 @@
             <section id="banner">
                 <h2>Mis marcas de running</h2>
                 <p>El lugar donde guardar tus marcas como todo un corredor profesional.</p>
-                <%
-                    if (user == null) {
-                        out.print("<ul class=\"actions special\">"
-                                + "<li><a href=\"logInPage.jsp\" class=\"button primary\">Iniciar sesi髇</a></li>"
-                                + "<li><a href=\"singUpPage.jsp\" class=\"button\">Registrarse</a></li>"
-                                + "</ul>");
-                    } else {
-                        out.print("<ul class=\"actions special\">"
-                                + "<li>"
-                                + "<form method=\"post\" action=\"findUser.jsp\">"
-                                + "<div class=\"row gtr-50 gtr-uniform\">"
-                                + "<div class=\"col-8 col-12-mobilep\">"
-                                + "<input type=\"text\" name=\"user\" id=\"email\" placeholder=\"Encuentra usuarios\" />"
-                                + "</div>"
-                                + "<div class=\"col-4 col-12-mobilep\">"
-                                + "<input type=\"submit\" value=\"Buscar\" class=\"fit\" />"
-                                + "</div>"
-                                + "</div>"
-                                + "</form>"
-                                + "</li>"
-                                + "</ul>");
-                    }
 
+                <%
+                    if (user.getId() == -1) {
                 %>
+
+                <ul class="actions special">
+                    <li><a href="logInPage.jsp" class="button primary">Iniciar sesi贸n</a></li>
+                    <li><a href="signUpPage.jsp" class="button">Registrarse</a></li>
+                </ul>
+
+                <%} else {%>
+
+                <ul class="actions special">
+                    <li>
+                        <form method="post" action="findUserPage.jsp">
+                            <div class="row gtr-50 gtr-uniform">
+                                <div class="col-8 col-7-mobilep">
+                                    <input type="query" name="user" id="query" placeholder="Encuentra usuarios" />
+                                </div>
+                                <div class="col-2 col-2-mobilep">
+                                    <span class="actions">
+                                    <input type="submit" class="button special" value="&#128269;">
+                                    </span>
+                                </div>
+
+                            </div>
+                        </form>
+                    </li>
+                </ul>
+
+                <%}%>
+
+
             </section>
 
             <!-- Main -->
@@ -121,8 +146,7 @@
                         <h2>Bienvenido al lugar donde guardar tus<br>
                             marcas como si fueras un corredor profesional</h2>
                         <p>Gracias a mis marcas de running puedes llevar todos 
-                            tus tiempos en diferentes carreras sin preocupaci髇 
-                            ninguna, jam醩 se perderan.</p>
+                            tus tiempos en diferentes carreras sin ninguna preocupaci贸n, y as铆 podr谩s seguir mejorando tus tiempos.</p>
                     </header>
                     <span class="image featured">
                         <img src="https://cdn.discordapp.com/attachments/641698383228305418/685024884744912904/banner.png" alt="MIS MARCAS DE RUNNING" />
@@ -159,48 +183,55 @@
                 <div class="row">
                     <div class="col-6 col-12-narrower">
 
+                        <%
+                            Run run1 = m.getRun((int) (Math.random() * (0 + m.getRuns().size())));
+                        %>
                         <section class="box special">
-                            <span class="image featured"><img src="images/pic02.jpg" alt="" /></span>
-                            <h3>Sed lorem adipiscing</h3>
-                            <p>Integer volutpat ante et accumsan commophasellus sed aliquam feugiat lorem aliquet ut enim rutrum phasellus iaculis accumsan dolore magna aliquam veroeros.</p>
+                            <span class="image featured"><img src="<%=run1.getPhoto()%>" alt="<%=run1.getName()%>" /></span>
+                            <h3><b><%=run1.getName()%></b></h3>
+
                             <ul class="actions special">
-                                <li><a href="#" class="button alt">Learn More</a></li>
+                                <li><a href="
+                                       <%
+                                           if (user.getId() == -1) {
+                                               out.print("logInPage.jsp");
+                                           } else {
+                                               session.setAttribute("selectedRun", run1.getId());
+                                               out.print("newMarkPage.jsp");
+                                           }
+
+                                       %>
+                                       " class="button">Guardar marca</a></li>
                             </ul>
                         </section>
 
                     </div>
                     <div class="col-6 col-12-narrower">
-
+                        <%                            Run run2;
+                            do {
+                                run2 = m.getRun((int) (Math.random() * (0 + m.getRuns().size())));
+                            } while (run2.getId() == run1.getId());
+                        %>
                         <section class="box special">
-                            <span class="image featured"><img src="images/pic03.jpg" alt="" /></span>
-                            <h3>Accumsan integer</h3>
-                            <p>Integer volutpat ante et accumsan commophasellus sed aliquam feugiat lorem aliquet ut enim rutrum phasellus iaculis accumsan dolore magna aliquam veroeros.</p>
+                            <span class="image featured"><img src="<%=run2.getPhoto()%>" alt="<%=run2.getName()%>" /></span>
+                            <h3><b><%=run2.getName()%></b></h3>
                             <ul class="actions special">
-                                <li><a href="#" class="button alt">Learn More</a></li>
+                                <li><a href="
+                                       <%
+                                           if (user.getId() == -1) {
+                                               out.print("logInPage.jsp");
+                                           } else {
+                                               session.setAttribute("selectedRun", run2.getId());
+                                               out.print("newMarkPage.jsp");
+                                           }
+
+                                       %>
+                                       " class="button">Guardar marca</a></li>
                             </ul>
                         </section>
 
                     </div>
                 </div>
-
-            </section>
-
-            <!-- CTA -->
-            <section id="cta">
-
-                <h2>Sign up for beta access</h2>
-                <p>Blandit varius ut praesent nascetur eu penatibus nisi risus faucibus nunc.</p>
-
-                <form>
-                    <div class="row gtr-50 gtr-uniform">
-                        <div class="col-8 col-12-mobilep">
-                            <input type="email" name="email" id="email" placeholder="Email Address" />
-                        </div>
-                        <div class="col-4 col-12-mobilep">
-                            <input type="submit" value="Sign Up" class="fit" />
-                        </div>
-                    </div>
-                </form>
 
             </section>
 
@@ -224,9 +255,18 @@
         <script src="assets/js/jquery.dropotron.min.js"></script>
         <script src="assets/js/jquery.scrollex.min.js"></script>
         <script src="assets/js/browser.min.js"></script>
-        <script src="assets/js/breakpoints.min.js"></script>
+        <script src="assets/js/breakpoints .min.js"></script>
         <script src="assets/js/util.js"></script>
         <script src="assets/js/main.js"></script>
+
+        <%            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect("error.html");
+            } catch (Error er) {
+                er.printStackTrace();
+                response.sendRedirect("error.html");
+            }
+        %>
 
     </body>
 </html>
